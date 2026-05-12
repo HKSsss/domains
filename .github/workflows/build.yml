@@ -1,0 +1,44 @@
+name: Build Custom GeoSite
+on:
+  schedule:
+    - cron: "0 2 * * *" # Автосборка каждый день в 02:00
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout domain-list-community
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/domain-list-community
+          path: builder
+
+      - name: Fetch allow-domains lists
+        run: |
+          mkdir -p builder/data
+          # Скачиваем сырой лист. Имя файла будет тегом внутри .dat
+          curl -sL https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Services/google_ai.lst > builder/data/google_ai
+          
+          # Очистка от мусора (комментарии, пустые строки), если они там есть
+          sed -i '/^#/d' builder/data/google_ai
+          sed -i '/^$/d' builder/data/google_ai
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build geosite.dat
+        run: |
+          cd builder
+          go run ./ --datapath=./data --exportlists=google_ai
+          mv dlc.dat ../geosite_custom.dat
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          files: geosite_custom.dat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
