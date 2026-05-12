@@ -18,11 +18,11 @@ jobs:
         run: |
           mkdir -p builder/data
           # Скачиваем сырой лист. Имя файла будет тегом внутри .dat
-          curl -sL https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Services/google_ai.lst > builder/data/google_ai
+          curl -sL https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Services/google_ai.lst > builder/data/google-ai
           
           # Очистка от мусора (комментарии, пустые строки), если они там есть
-          sed -i '/^#/d' builder/data/google_ai
-          sed -i '/^$/d' builder/data/google_ai
+          sed -i '/^#/d' builder/data/google-ai
+          sed -i '/^$/d' builder/data/google-ai
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -32,7 +32,7 @@ jobs:
       - name: Build geosite.dat
         run: |
           cd builder
-          go run ./ --datapath=./data --exportlists=google_ai
+          go run ./ --datapath=./data --exportlists=google-ai
           mv dlc.dat ../geosite_custom.dat
 
       - name: Release
